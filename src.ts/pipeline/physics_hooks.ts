@@ -1,17 +1,19 @@
-import {RigidBodyHandle} from "../dynamics";
-import {ColliderHandle} from "../geometry";
+import { RigidBodyHandle } from "../dynamics";
+import { ColliderHandle } from "../geometry";
 
 export enum ActiveHooks {
     NONE = 0,
     FILTER_CONTACT_PAIRS = 0b0001,
     FILTER_INTERSECTION_PAIRS = 0b0010,
-    // MODIFY_SOLVER_CONTACTS = 0b0100, /* Not supported yet in JS. */
+    MODIFY_SOLVER_CONTACTS = 0b0100,
 }
 
 export enum SolverFlags {
     EMPTY = 0b000,
     COMPUTE_IMPULSE = 0b001,
 }
+
+export type ContactModificationContext = any; // Placeholder for the actual ContactModificationContext type.
 
 export interface PhysicsHooks {
     /**
@@ -51,4 +53,15 @@ export interface PhysicsHooks {
         body1: RigidBodyHandle,
         body2: RigidBodyHandle,
     ): boolean;
+
+    /**
+     * Function that modifies the set of contacts seen by the constraints solver.
+     *
+     * Note that this method will only be called if at least one of the colliders
+     * involved in the contact contains the `ActiveHooks::MODIFY_SOLVER_CONTACTS` flags
+     * in its physics hooks flags.
+     *
+     * @param context - The context providing information and access to the contacts to modify.
+     */
+    modifySolverContacts(context: ContactModificationContext): void;
 }

@@ -1,13 +1,16 @@
-use crate::utils;
+use crate::math::RawVector;
+use crate::utils::{self, FlatHandle};
 use rapier::geometry::SolverFlags;
+use rapier::math::{Real, Vector};
 use rapier::pipeline::{ContactModificationContext, PairFilterContext, PhysicsHooks};
+use rapier::prelude::{ContactManifold, SolverContact};
 use wasm_bindgen::prelude::*;
 
 pub struct RawPhysicsHooks {
     pub this: js_sys::Object,
     pub filter_contact_pair: js_sys::Function,
     pub filter_intersection_pair: js_sys::Function,
-    // pub modify_solver_contacts: &'a js_sys::Function,
+    pub modify_solver_contacts: js_sys::Function,
 }
 
 // HACK: the RawPhysicsHooks is no longer Send+Sync because the JS objects are
@@ -73,22 +76,29 @@ impl PhysicsHooks for RawPhysicsHooks {
             .unwrap_or(false)
     }
 
-    fn modify_solver_contacts(&self, _ctxt: &mut ContactModificationContext) {}
+    fn modify_solver_contacts(&self, ctxt: &mut ContactModificationContext) {
+        let raw_context = RawContactModificationContext {
+            collider1: utils::flat_handle(ctxt.collider1.0),
+            collider2: utils::flat_handle(ctxt.collider2.0),
+            rigid_body1: ctxt.rigid_body1.map(|rb| utils::flat_handle(rb.0)),
+            rigid_body2: ctxt.rigid_body2.map(|rb| utils::flat_handle(rb.0)),
+            manifold: ctxt.manifold as *const ContactManifold,
+            solver_contacts: ctxt.solver_contacts as *mut Vec<SolverContact>,
+            normal: ctxt.normal as *mut Vector<Real>,
+            user_data: ctxt.user_data as *mut u32,
+        };
+        let _ = self
+            .modify_solver_contacts
+            .call1(&self.this, &JsValue::from(raw_context));
+    }
 }
-
-/* NOTE: the following is an attempt to make contact modification work.
- *
-#[wasm_bindgen]
-#[derive(Copy, Clone, Debug)]
-pub struct RawContactManifold(*const ContactManifold);
-pub struct RawSolverContact(*const SolverContact);
 
 #[wasm_bindgen]
 pub struct RawContactModificationContext {
-    pub collider1: u32,
-    pub collider2: u32,
-    pub rigid_body1: Option<u32>,
-    pub rigid_body2: Option<u32>,
+    pub collider1: FlatHandle,
+    pub collider2: FlatHandle,
+    pub rigid_body1: Option<FlatHandle>,
+    pub rigid_body2: Option<FlatHandle>,
     pub manifold: *const ContactManifold,
     pub solver_contacts: *mut Vec<SolverContact>,
     normal: *mut Vector<Real>,
@@ -97,11 +107,11 @@ pub struct RawContactModificationContext {
 
 #[wasm_bindgen]
 impl RawContactModificationContext {
-    pub fn collider1(&self) -> u32 {
+    pub fn collider1(&self) -> FlatHandle {
         self.collider1
     }
 
-    pub fn collider2(&self) -> u32 {
+    pub fn collider2(&self) -> FlatHandle {
         self.collider2
     }
 
@@ -147,7 +157,7 @@ impl RawContactModificationContext {
 
     pub fn solver_contact_point(&self, i: usize) -> Option<RawVector> {
         unsafe {
-            (*self.solver_contacts)
+            (&(*self.solver_contacts))
                 .get(i)
                 .map(|c| c.point.coords.into())
         }
@@ -155,7 +165,7 @@ impl RawContactModificationContext {
 
     pub fn set_solver_contact_point(&mut self, i: usize, pt: &RawVector) {
         unsafe {
-            if let Some(c) = (*self.solver_contacts).get_mut(i) {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
                 c.point = pt.0.into()
             }
         }
@@ -163,7 +173,7 @@ impl RawContactModificationContext {
 
     pub fn solver_contact_dist(&self, i: usize) -> Real {
         unsafe {
-            (*self.solver_contacts)
+            (&(*self.solver_contacts))
                 .get(i)
                 .map(|c| c.dist)
                 .unwrap_or(0.0)
@@ -172,46 +182,45 @@ impl RawContactModificationContext {
 
     pub fn set_solver_contact_dist(&mut self, i: usize, dist: Real) {
         unsafe {
-            if let Some(c) = (*self.solver_contacts).get_mut(i) {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
                 c.dist = dist
             }
         }
     }
 
     pub fn solver_contact_friction(&self, i: usize) -> Real {
-        unsafe { (*self.solver_contacts)[i].friction }
+        unsafe { (&(*self.solver_contacts))[i].friction }
     }
 
     pub fn set_solver_contact_friction(&mut self, i: usize, friction: Real) {
         unsafe {
-            if let Some(c) = (*self.solver_contacts).get_mut(i) {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
                 c.friction = friction
             }
         }
     }
 
     pub fn solver_contact_restitution(&self, i: usize) -> Real {
-        unsafe { (*self.solver_contacts)[i].restitution }
+        unsafe { (&(*self.solver_contacts))[i].restitution }
     }
 
     pub fn set_solver_contact_restitution(&mut self, i: usize, restitution: Real) {
         unsafe {
-            if let Some(c) = (*self.solver_contacts).get_mut(i) {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
                 c.restitution = restitution
             }
         }
     }
 
     pub fn solver_contact_tangent_velocity(&self, i: usize) -> RawVector {
-        unsafe { (*self.solver_contacts)[i].tangent_velocity.into() }
+        unsafe { (&(*self.solver_contacts))[i].tangent_velocity.into() }
     }
 
     pub fn set_solver_contact_tangent_velocity(&mut self, i: usize, vel: &RawVector) {
         unsafe {
-            if let Some(c) = (*self.solver_contacts).get_mut(i) {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
                 c.tangent_velocity = vel.0.into()
             }
         }
     }
 }
-*/
