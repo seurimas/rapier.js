@@ -1,5 +1,6 @@
 import { RigidBodyHandle } from "../dynamics";
 import { ColliderHandle } from "../geometry";
+import { Vector } from "../math";
 
 export enum ActiveHooks {
     NONE = 0,
@@ -13,7 +14,57 @@ export enum SolverFlags {
     COMPUTE_IMPULSE = 0b001,
 }
 
-export type ContactModificationContext = any; // Placeholder for the actual ContactModificationContext type.
+export declare class ContactModificationContext {
+    collider1: ColliderHandle;
+    collider2: ColliderHandle;
+    body1: RigidBodyHandle;
+    body2: RigidBodyHandle;
+
+    normal: Vector;
+    user_data: number;
+
+    num_solver_contacts(): number;
+
+    clear_solver_contacts(): void;
+
+    remove_solver_contact(index: number): void;
+
+    solver_contact_point(index: number): Vector | null;
+    set_solver_contact_point(index: number, point: Vector): void;
+
+    solver_contact_dist(index: number): number;
+    set_solver_contact_dist(index: number, dist: number): void;
+
+    solver_contact_friction(index: number): number;
+    set_solver_contact_friction(index: number, friction: number): void;
+
+    solver_contact_restitution(index: number): number;
+    set_solver_contact_restitution(index: number, restitution: number): void;
+
+    solver_contact_tangent_velocity(index: number): Vector | null;
+    set_solver_contact_tangent_velocity(
+        index: number,
+        tangent_velocity: Vector,
+    ): void;
+
+    solver_contact_warmstart_impulse(index: number): number;
+    set_solver_contact_warmstart_impulse(index: number, impulse: number): void;
+
+    solver_contact_warmstart_tangent_impulse(index: number): number;
+    set_solver_contact_warmstart_tangent_impulse(
+        index: number,
+        impulse: number,
+    ): void;
+
+    solver_contact_warmstart_twist_impulse(index: number): number;
+    set_solver_contact_warmstart_twist_impulse(
+        index: number,
+        impulse: number,
+    ): void;
+
+    solver_contact_is_new(index: number): boolean;
+    set_solver_contact_is_new(index: number, is_new: boolean): void;
+}
 
 export interface PhysicsHooks {
     /**

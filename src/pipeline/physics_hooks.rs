@@ -1,3 +1,4 @@
+use crate::geometry::RawContactManifold;
 use crate::math::RawVector;
 use crate::utils::{self, FlatHandle};
 use rapier::geometry::SolverFlags;
@@ -107,12 +108,21 @@ pub struct RawContactModificationContext {
 
 #[wasm_bindgen]
 impl RawContactModificationContext {
+    // Simple getters and setters for the fields.
     pub fn collider1(&self) -> FlatHandle {
         self.collider1
     }
 
     pub fn collider2(&self) -> FlatHandle {
         self.collider2
+    }
+
+    pub fn rigid_body1(&self) -> Option<FlatHandle> {
+        self.rigid_body1
+    }
+
+    pub fn rigid_body2(&self) -> Option<FlatHandle> {
+        self.rigid_body2
     }
 
     #[wasm_bindgen(getter)]
@@ -139,6 +149,7 @@ impl RawContactModificationContext {
         }
     }
 
+    // Solver contacts manipulation methods.
     pub fn num_solver_contacts(&self) -> usize {
         unsafe { (*self.solver_contacts).len() }
     }
@@ -222,5 +233,58 @@ impl RawContactModificationContext {
                 c.tangent_velocity = vel.0.into()
             }
         }
+    }
+
+    pub fn solver_contact_warmstart_impulse(&self, i: usize) -> Real {
+        unsafe { (&(*self.solver_contacts))[i].warmstart_impulse }
+    }
+
+    pub fn set_solver_contact_warmstart_impulse(&mut self, i: usize, impulse: Real) {
+        unsafe {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
+                c.warmstart_impulse = impulse
+            }
+        }
+    }
+
+    pub fn solver_contact_warmstart_tangent_impulse(&self, i: usize) -> Real {
+        unsafe { (&(*self.solver_contacts))[i].warmstart_tangent_impulse.x }
+    }
+
+    pub fn set_solver_contact_warmstart_tangent_impulse(&mut self, i: usize, impulse: Real) {
+        unsafe {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
+                c.warmstart_tangent_impulse.x = impulse;
+            }
+        }
+    }
+
+    pub fn solver_contact_warmstart_twist_impulse(&self, i: usize) -> Real {
+        unsafe { (&(*self.solver_contacts))[i].warmstart_twist_impulse }
+    }
+
+    pub fn set_solver_contact_warmstart_twist_impulse(&mut self, i: usize, impulse: Real) {
+        unsafe {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
+                c.warmstart_twist_impulse = impulse
+            }
+        }
+    }
+
+    pub fn solver_contact_is_new(&self, i: usize) -> bool {
+        unsafe { (&(*self.solver_contacts))[i].is_new == 1.0 }
+    }
+
+    pub fn set_solver_contact_is_new(&mut self, i: usize, is_new: bool) {
+        unsafe {
+            if let Some(c) = (&mut (*self.solver_contacts)).get_mut(i) {
+                c.is_new = if is_new { 1.0 } else { 0.0 };
+            }
+        }
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn contact_manifold(&self) -> RawContactManifold {
+        RawContactManifold(self.manifold)
     }
 }
