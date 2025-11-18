@@ -131,9 +131,9 @@ impl RawContactModificationContext {
     }
 
     #[wasm_bindgen(setter)]
-    pub fn set_normal(&mut self, normal: RawVector) {
+    pub fn set_normal(&mut self, normal: &RawVector) {
         unsafe {
-            *self.normal = normal.0;
+            *self.normal = normal.0.into();
         }
     }
 

@@ -1,3 +1,4 @@
+import { RawVector } from "../raw";
 import { RigidBodyHandle } from "../dynamics";
 import { ColliderHandle } from "../geometry";
 import { Vector } from "../math";
@@ -20,7 +21,7 @@ export declare class ContactModificationContext {
     body1: RigidBodyHandle;
     body2: RigidBodyHandle;
 
-    normal: Vector;
+    normal: RawVector;
     user_data: number;
 
     num_solver_contacts(): number;
@@ -29,8 +30,8 @@ export declare class ContactModificationContext {
 
     remove_solver_contact(index: number): void;
 
-    solver_contact_point(index: number): Vector | null;
-    set_solver_contact_point(index: number, point: Vector): void;
+    solver_contact_point(index: number): RawVector | null;
+    set_solver_contact_point(index: number, point: RawVector): void;
 
     solver_contact_dist(index: number): number;
     set_solver_contact_dist(index: number, dist: number): void;
@@ -41,10 +42,10 @@ export declare class ContactModificationContext {
     solver_contact_restitution(index: number): number;
     set_solver_contact_restitution(index: number, restitution: number): void;
 
-    solver_contact_tangent_velocity(index: number): Vector | null;
+    solver_contact_tangent_velocity(index: number): RawVector | null;
     set_solver_contact_tangent_velocity(
         index: number,
-        tangent_velocity: Vector,
+        tangent_velocity: RawVector,
     ): void;
 
     solver_contact_warmstart_impulse(index: number): number;
