@@ -64,7 +64,7 @@ export class ContactModificationContext {
      * User data associated with this contact.
      */
     get userData(): number {
-        return this.raw.user_data();
+        return this.raw.user_data;
     }
 
     set userData(data: number) {
@@ -279,7 +279,7 @@ export class ContactModificationContext {
      * Can be used with TempContactManifold methods for easier use.
      */
     get contactManifold(): RawContactManifold {
-        return this.raw.contact_manifold();
+        return this.raw.contact_manifold;
     }
 
     /**
@@ -349,7 +349,8 @@ export interface PhysicsHooks {
      * involved in the contact contains the `ActiveHooks::MODIFY_SOLVER_CONTACTS` flags
      * in its physics hooks flags.
      *
-     * @param context - The context providing information and access to the contacts to modify.
+     * @param context - The raw context providing information and access to the contacts to modify.
+     * Can be used with ContactModificationContext for easier use.
      */
-    modifySolverContacts(context: RawContactModificationContext): void;
+    modifySolverContacts?(context: RawContactModificationContext): void;
 }

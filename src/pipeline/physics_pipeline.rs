@@ -141,7 +141,7 @@ impl RawPhysicsPipeline {
         hookObject: js_sys::Object,
         hookFilterContactPair: js_sys::Function,
         hookFilterIntersectionPair: js_sys::Function,
-        hookModifySolverContacts: js_sys::Function,
+        hookModifySolverContacts: Option<js_sys::Function>,
     ) {
         if eventQueue.auto_drain {
             eventQueue.clear();

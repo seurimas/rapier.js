@@ -12,7 +12,7 @@ pub struct RawPhysicsHooks {
     pub this: js_sys::Object,
     pub filter_contact_pair: js_sys::Function,
     pub filter_intersection_pair: js_sys::Function,
-    pub modify_solver_contacts: js_sys::Function,
+    pub modify_solver_contacts: Option<js_sys::Function>,
 }
 
 // HACK: the RawPhysicsHooks is no longer Send+Sync because the JS objects are
@@ -79,6 +79,9 @@ impl PhysicsHooks for RawPhysicsHooks {
     }
 
     fn modify_solver_contacts(&self, ctxt: &mut ContactModificationContext) {
+        let Some(modify_solver_contacts) = &self.modify_solver_contacts else {
+            return;
+        };
         let raw_context = RawContactModificationContext {
             collider1: utils::flat_handle(ctxt.collider1.0),
             collider2: utils::flat_handle(ctxt.collider2.0),
@@ -89,9 +92,7 @@ impl PhysicsHooks for RawPhysicsHooks {
             normal: ctxt.normal as *mut Vector<Real>,
             user_data: ctxt.user_data as *mut u32,
         };
-        let _ = self
-            .modify_solver_contacts
-            .call1(&self.this, &JsValue::from(raw_context));
+        let _ = modify_solver_contacts.call1(&self.this, &JsValue::from(raw_context));
     }
 }
 
