@@ -12,44 +12,45 @@ export function initWorld(RAPIER: RAPIER_API, testbed: Testbed) {
             return true;
         },
         modifySolverContacts: (
-            context: any,
+            rawContext: any,
         ) => {
+            const context = new RAPIER.ContactModificationContext(rawContext);
             let allowed_local_n1 = { x: 0.0, y: 0.0 };
 
-            if (context.collider1() == platform1Collider.handle) {
+            if (context.collider1 == platform1Collider.handle) {
                 allowed_local_n1 = { x: 0.0, y: 1.0 };
-            } else if (context.collider2() == platform1Collider.handle) {
+            } else if (context.collider2 == platform1Collider.handle) {
                 // Flip the allowed direction.
                 allowed_local_n1 = { x: 0.0, y: -1.0 };
             }
 
-            if (context.collider1() == platform2Collider.handle) {
+            if (context.collider1 == platform2Collider.handle) {
                 allowed_local_n1 = { x: 0.0, y: -1.0 };
-            } else if (context.collider2() == platform2Collider.handle) {
+            } else if (context.collider2 == platform2Collider.handle) {
                 // Flip the allowed direction.
                 allowed_local_n1 = { x: 0.0, y: 1.0 };
             }
 
             // Call the helper function that simulates one-way platforms.
-            context.update_as_oneway_platform(
-                RAPIER.VectorOps.intoRaw(allowed_local_n1),
+            context.updateAsOnewayPlatform(
+                allowed_local_n1,
                 0.1,
             );
 
             // Set the surface velocity of the accepted contacts.
             let tangent_velocity =
-                (context.collider1() == platform1Collider.handle ||
-                        context.collider2() == platform2Collider.handle)
+                (context.collider1 == platform1Collider.handle ||
+                        context.collider2 == platform2Collider.handle)
                     ? -12.0
                     : 12.0;
 
-            for (let i = 0; i < context.num_solver_contacts(); ++i) {
-                context.set_solver_contact_tangent_velocity(
+            for (let i = 0; i < context.numSolverContacts; ++i) {
+                context.setSolverContactTangentVelocity(
                     i,
-                    RAPIER.VectorOps.intoRaw({
+                    {
                         x: tangent_velocity,
                         y: 0.0,
-                    }),
+                    },
                 );
             }
         },
